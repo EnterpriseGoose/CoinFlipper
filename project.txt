@@ -1,0 +1,45 @@
+THEME: COINS
+
+SPITBALLIN IDEAS HERE
+
+Maybe a cookie-clicker esque thing where you have to phsyically click to flip a coin>
+
+Maybe physics similar esc where you flip a coin based on different variables you adjust and stuff
+
+Like you use the mouse to flip coins and whatnot
+
+Or maybe adrelaine game from neal.fun or smth similar
+
+Collection of minigames each relating to coins in some way?
+
+Mini text advenure thing
+
+Gambeling with coins or smth
+
+Current research stuff:
+    IMPLEMENT A COIN FLIP ANIMATION/PHYSICS THING
+    Check other implementations to see if i can borrow code
+
+OK FINAL IDEA: GAMBELING 
+    You against the dealer (sorta buckshot roulette?)
+    Have to constantly guess heads or tails based on a coin the dealer flips
+    Based on wins, you can gain power ups to combat the deaker
+
+#4 Intro:
+
+
+#1 Game Loop:
+
+
+#2 Win:
+
+
+#3 Loop:
+
+
+Reach goals:
+Multiplayer???
+Lore
+Better art assets 
+
+Something that actually full works as intended 
