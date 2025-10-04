@@ -41,5 +41,3 @@ Reach goals:
 Multiplayer???
 Lore
 Better art assets 
-
-Something that actually full works as intended 
