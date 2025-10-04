@@ -1,0 +1,70 @@
+#GIT-IGNORE, PLEASE WORK
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Lockfile - turn off if using other bots as dependencies
+!package-lock.json
+!yarn.lock
+!pnpm-lock.yaml
+
+# Builds
+dist/
+build/
+out/
+*.tsbuildinfo
+
+# You are not getting my keys
+.env
+.env.*
+!.env.example
+*.local.env
+*.secret
+*.pem
+*.key
+
+# Logs
+logs/
+*.log
+logs-*.log
+pids/
+*.pid
+*.pid.lock
+coverage/
+.nyc_output/
+
+# Temp
+.tmp/
+tmp/
+temp/
+.cache/
+.cache-loader/
+
+# Dev stufff
+.ngrok2/
+ngrok.log
+
+# Why vscode why
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# containers
+docker-data/
+.now/
+.vercel/
+.netlify/
+
+# I might use py not sure
+.venv/
+venv/
+__pycache__/
+*.py[cod]

@@ -1,0 +1,12 @@
+THEME: COINS
+
+NEW IDEA:
+
+SLACK BOT THAT ENABLES GAMBLING YEAHHH
+
+Key features:
+Reacts to messages and adds emojis:
+    Coin - add coin reaction
+
+
+Reach:
