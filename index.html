@@ -1,1 +1,160 @@
-<!DOCTYPE html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Slack Bot — User Guide</title>
+  <link rel="stylesheet" href="style.css" />
+  <script defer src="script.js"></script>
+</head>
+<body>
+  <div class="welcome" aria-hidden="false">
+    <div class="bubble">
+      <p class="bubble-text">Welcome to the Gambler Slack Bot Guide.</p>
+      <p class="enter-hint" aria-live="polite" hidden>Press <kbd>Enter</kbd> to continue</p>
+    </div>
+  </div>
+
+  <div class="layout" aria-hidden="true">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <h1>Gambler Guide</h1>
+          <p class="muted">Commands & interactions</p>
+        </div>
+      </div>
+
+      <nav id="toc">
+        <a href="#overview">Overview</a>
+        <a href="#using">Using the Bot</a>
+        <a href="#commands">Commands</a>
+        <a href="#examples">Examples</a>
+        <a href="#tips">Tips</a>
+        <a href="#troubleshooting">Troubleshooting</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+    </aside>
+
+    <main>
+      <section id="overview" data-keywords="intro what is this bot mention slash dm">
+        <h2>Overview</h2>
+        <p>
+          This Slack bot responds to <code>@mentions</code>, supports handy <em>slash commands</em>,
+          and offers basic interactive UI (buttons &amp; a modal). It works in channels (when invited)
+          and in direct messages (DMs).
+        </p>
+        <div class="cards">
+          <div class="card"><span class="tag">Mention</span> Say <code>@bot hi</code> to get started.</div>
+          <div class="card"><span class="tag">Slash</span> Try <code>/hello</code> or <code>/flip</code>.</div>
+          <div class="card"><span class="tag">UI</span> Buttons + a simple form (modal).</div>
+          <div class="card"><span class="tag">Scope</span> General chat; respectful use only.</div>
+        </div>
+      </section>
+
+      <section id="using" data-keywords="invite channel dm app home buttons modal">
+        <h2>Using the Bot</h2>
+        <ul class="bullets">
+          <li><strong>Invite to a channel:</strong> <code>/invite @Gambler</code></li>
+          <li><strong>Mention:</strong> type <code>@Gambler</code> then your message. The bot replies in the thread and may show buttons.</li>
+          <li><strong>Direct Messages:</strong> open the bot in Apps → send messages privately.</li>
+        </ul>
+      </section>
+
+      <section id="commands" data-keywords="slash hello flip ping modal mention actions">
+        <h2>Commands</h2>
+
+        <h3>Slash Commands</h3>
+        <table class="table">
+          <thead>
+            <tr><th>Command</th><th>What it does</th><th>Where</th><th>Example</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>/hello</code></td>
+              <td>Sends a quick greeting.</td>
+              <td>Channel or DM</td>
+              <td><code>/hello</code></td>
+            </tr>
+            <tr>
+              <td><code>/flip</code></td>
+              <td>Flips a virtual coin and posts the result.</td>
+              <td>Channel or DM</td>
+              <td><code>/flip</code> → <em>Heads</em> or <em>Tails</em></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="callout">
+          Slash commands always acknowledge instantly.
+          If nothing happens, see <a href="#troubleshooting">Troubleshooting</a>.
+        </div>
+
+        <h3>@Mention Triggers</h3>
+        <ul class="bullets">
+          <li><strong>General mention:</strong> <code>@Gambler</code> → the bot replies and shows buttons.</li>
+          <li><strong>Ping button:</strong> returns a private “pong” to you (others won’t see it).</li>
+          <li><strong>Open modal:</strong> launches a small form (collects your name) then sends you a DM.</li>
+        </ul>
+      </section>
+
+      <section id="examples" data-keywords="copy examples hello flip mention modal">
+        <h2>Examples</h2>
+
+        <div class="code">
+          <button class="copy" data-copy="#ex1">Copy</button>
+          <pre id="ex1"><code># In a channel (after adding Gambler)
+@Gambler hi
+# Bot replies in thread with buttons:
+#  - Open modal
+#  - Ping (ephemeral)</code></pre>
+        </div>
+
+        <div class="code">
+          <button class="copy" data-copy="#ex2">Copy</button>
+          <pre id="ex2"><code># Slash commands
+/hello
+/flip
+MORE COMING SOON</code></pre>
+        </div>
+
+        <div class="code">
+          <button class="copy" data-copy="#ex3">Copy</button>
+          <pre id="ex3"><code># Try these phrases after mentioning the bot
+@Gambler help
+@Gambler what can you do?</code></pre>
+        </div>
+      </section>
+
+      <section id="tips" data-keywords="etiquette threads ephemeral privacy">
+        <h2>Tips</h2>
+        <ul class="bullets">
+          <li><strong>Use threads:</strong> Please we don't want a repeat of the secret button.</li>
+          <li><strong>DMs vs channels:</strong> DM to tell it your secrets. Channel to play against your friends. </li>
+          <li><strong>Be specific:</strong> when doing a command, make sur every letter is lowercase.</li>
+        </ul>
+      </section>
+
+      <section id="troubleshooting" data-keywords="not found invite no response slash command missing">
+        <h2>Troubleshooting</h2>
+        <ul class="bullets">
+          <li><strong>“I can’t find the bot”</strong> → LITERALLY SEARCH UP GAMBLER IN APPS</li>
+          <li><strong>“The bot isn’t responding”</strong> → It's probably asleep. Try <code>/invite @Gambler</code> and get better.</li>
+          <li><strong>“Certain commands don't work”</strong> → uhhh probably I disabled something. Try messaging @Iamalive for more info </li>
+        </ul>
+      </section>
+
+      <section id="faq" data-keywords="dm channels privacy visibility who sees">
+        <h2>FAQ</h2>
+        <p><strong>Can I use the bot in DMs?</strong> Yep! Message the bot by finding it in apps</p>
+        <p><strong>Who can see the bot’s messages?</strong> Depending on the level of gambeling you decided, you will see more or less messages </p>
+        <p><strong>Gamble?</strong> yes. Use <code>@Gambler</code> so it knows you’re talking to it.</p>
+      </section>
+
+      <footer>
+        <p class="muted">© 2025 GAMBLER SLACK BOT. I AM NOT RESPONSIBLE FOR ANY GAMBLING ADDITIONS</p>
+      </footer>
+    </main>
+  </div>
+</body>
+</html>

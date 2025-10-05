@@ -5,8 +5,22 @@ NEW IDEA:
 SLACK BOT THAT ENABLES GAMBLING YEAHHH
 
 Key features:
+
+First is opt-in, then opt into reactions
+
 Reacts to messages and adds emojis:
     Coin - add coin reaction
+    Gamble, gambeling - 
+    Win, won -
+    Lose, Lost -
+
+Game:
+
+
+Leaderboard:
+
+
+Secret:
 
 
 Reach:
