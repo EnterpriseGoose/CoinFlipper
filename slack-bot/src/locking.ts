@@ -16,7 +16,6 @@ export async function withLock<T>(key: string, fn: () => Promise<T>): Promise<T>
     resolveNext!(null);
     throw err;
   } finally {
-    // cleanup if chain finished
     if (queues.get(key) === next) queues.delete(key);
   }
 }

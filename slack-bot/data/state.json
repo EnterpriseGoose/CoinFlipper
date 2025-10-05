@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "users": {
+    "U0828FYS2UC": {
+      "id": "U0828FYS2UC",
+      "play": true,
+      "see": false,
+      "createdAt": "2025-10-05T19:54:33.726Z",
+      "updatedAt": "2025-10-05T20:10:33.069Z",
+      "stats": {
+        "currentStreak": 0,
+        "longestStreak": 0
+      }
+    }
+  },
+  "balances": {
+    "U0828FYS2UC": {
+      "userId": "U0828FYS2UC",
+      "amount": 0,
+      "updatedAt": "2025-10-05T19:54:33.726Z"
+    }
+  },
+  "inventory": {},
+  "transactions": [],
+  "games": {},
+  "announcements": {
+    "dailyTopEnabled": false,
+    "weeklyResetEnabled": false
+  },
+  "secretCoins": {
+    "globalCap": 3,
+    "awards": []
+  },
+  "idempotency": {},
+  "featureFlags": {
+    "optIn": true,
+    "economy": true,
+    "shop": true,
+    "streaks": true,
+    "games": true,
+    "leaderboard": true,
+    "secretCoins": true,
+    "aiDebate": true
+  },
+  "createdAt": "2025-10-05T18:28:11.113Z",
+  "updatedAt": "2025-10-05T20:10:33.069Z"
+}

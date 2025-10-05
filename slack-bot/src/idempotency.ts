@@ -1,7 +1,7 @@
 import { store } from "./storage/fileStore.js";
 import { logger } from "./logger.js";
 
-/** Run an operation only once per key (until TTL expiration, if provided). */
+// run once per key - more if needed
 export async function runOnce<T>(
   key: string,
   fn: () => Promise<T>,

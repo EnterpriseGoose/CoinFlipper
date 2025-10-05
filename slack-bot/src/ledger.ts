@@ -1,9 +1,9 @@
 import { randomUUID } from "crypto";
-import { State, Transaction, TransactionType } from "./types"; // Remove .js
-import { store } from "./storage/fileStore"; // Remove .js
-import { logger } from "./logger"; // Remove .js
-import { withLock } from "./locking"; // Remove .js
-import { runOnce } from "./idempotency"; // Remove .js
+import { State, Transaction, TransactionType } from "./types"; 
+import { store } from "./storage/fileStore";
+import { logger } from "./logger"; 
+import { withLock } from "./locking";
+import { runOnce } from "./idempotency";
 
 function ensureUserBalance(state: State, userId: string) {
   if (!state.balances[userId]) {
@@ -28,15 +28,14 @@ export async function addTransaction(
     if (opts?.idemKey) {
       const idem = await runOnce(key, async () => "ok");
       if (!idem.ok) {
-        // Already applied
         const existing = store.get().transactions.find((t) => t.userId === userId && t.idemKey === opts!.idemKey);
         if (!existing) throw new Error("Idempotency claimed but transaction not found");
         return existing;
       }
     }
 
-    let created: Transaction | undefined; // Fix: Properly type the variable
-    let finalBalance: number = 0; // Fix: Store the final balance
+    let created: Transaction | undefined;
+    let finalBalance: number = 0;
 
     await store.update((s) => {
       ensureUserBalance(s, userId);
@@ -56,19 +55,19 @@ export async function addTransaction(
       s.transactions.push(tx);
       s.balances[userId] = { ...bal, amount: newBal, updatedAt: tx.createdAt };
       created = tx;
-      finalBalance = newBal; // Store the balance
+      finalBalance = newBal; 
     });
 
     if (!created) {
       throw new Error("Transaction creation failed");
     }
 
-    logger.info("Transaction", { userId, type, amount, balanceAfter: finalBalance }); // Fix: Use stored balance
+    logger.info("Transaction", { userId, type, amount, balanceAfter: finalBalance }); 
     return created;
   });
 }
 
-// Helpers for Phase 0 testing / dry runs
+// helpers
 export async function grantDaily(userId: string, amount: number, idemKey: string) {
   return addTransaction(userId, "grant", amount, { idemKey, refId: "daily_grant" });
 }

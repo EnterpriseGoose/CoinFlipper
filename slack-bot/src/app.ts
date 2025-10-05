@@ -1,21 +1,23 @@
-import "dotenv/config";
-import { App } from "@slack/bolt";
 import { CONFIG } from "./config.js";
 import { setLogLevel, logger } from "./logger.js";
 import { store } from "./storage/fileStore.js"
 import { scheduleDailyEt, scheduleWeeklyMondayEt } from "./scheduler.js";
 import { nowEt } from "./time.js";
+import { buildSlackApp, startSlackApp } from "./slackApp.js";
 
 async function init() {
   setLogLevel(CONFIG.logLevel);
   await store.init();
 
-  logger.info("Backend done", {
+  logger.info("Inital functions", {
     dataDir: CONFIG.dataDir,
     stateFile: CONFIG.stateFile,
     tz: CONFIG.etTz,
     flags: store.get().featureFlags,
   });
+
+  const app = buildSlackApp();
+  await startSlackApp(app);
   
   // add payout and other stuff later
   scheduleDailyEt("daily-midnight-et", async () => {
