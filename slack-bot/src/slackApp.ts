@@ -1,7 +1,10 @@
 import { App } from "@slack/bolt";
 import { store } from "./storage/fileStore";
 import { logger } from "./logger";
-import { StatementResultingChanges } from "node:sqlite";
+import { getBalance, runDailyGrantForAll } from "./economy";
+
+const COOLDOWN_MS = 60_000;
+const cooldwon = new Map<string, number>();
 
 function nowIso() { return new Date().toISOString(); }
 
@@ -55,14 +58,14 @@ export function buildSlackApp() {
             if (!userId || userId === "USLACKBOT") return;
 
             await setPlay(userId, true);
-            logger.info("Opt-in (PLAY) via :ssiege-coin: reaction", { userId });
+            logger.info("Opt-in (PLAY) via :siege-coin: reaction", { userId });
 
-            const channelId: string | undefined = ev.itemn?.channel;
+            const channelId: string | undefined = ev.item?.channel;
             if (channelId) {
                 await client.chat.postEphemeral({
                     channel: channelId,
                     user: userId,
-                    text: "Welcome to the gamblers. You can now use commands! Toggle the activity feed with `/see on` or `/see off`. Opt out anytime with `/stopgambeling`.",
+                    text: "Welcome to the gamblers. You can now use commands! Toggle the activity feed with `/see on` or `/see off`. Opt out anytime with `/stopgambling`.",
                 });
             }
         } catch (e: any) {
@@ -106,7 +109,46 @@ export function buildSlackApp() {
 
         await respond ({
             response_type: "ephemeral",
-            text: "🛑 You’re opted out. The bot won’t react to you or show you game activity. Re-opt-in by reacting with :siege-coin: on the intro post."  
+            text: "🛑 You’re opted out. The bot won’t react to you or show you game activity. Re-opt-in by reacting with :siege-coin: on any post."  
+        });
+    });
+
+    app.command("/coin", async ({ ack, respond, command}) => {
+        await ack();
+        const userId = command.user_id;
+
+        const s = store.get();
+        if (!s.users[userId]) {
+            await store.update((st) => {
+                st.users[userId] = {
+                    id: userId,
+                    play: false,
+                    see: false,
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toDateString(),
+                    stats: { currentStreak: 0, longestStreak: 0},
+                };
+            });
+        }
+
+        const balance = getBalance(userId);
+        const u = store.get().users[userId];
+
+        await respond({
+            response_type: "ephemeral",
+            blocks: [
+                {
+                    type: "section",
+                    text: { type: "mrkdwn", text: `*Your coins:* \`${balance}\`` }
+                },
+                {
+                    type: "context",
+                    elements: [
+                        { type: "mrkdwn", text: `PLAY: *${u.play ? "on" : "off"}* • SEE: *${u.see ? "on" : "off"}*` },
+                        { type: "mrkdwn", text: `Streak: *${u.stats.currentStreak}* (best *${u.stats.longestStreak}*)` }
+                    ]
+                }
+            ]
         });
     });
 
