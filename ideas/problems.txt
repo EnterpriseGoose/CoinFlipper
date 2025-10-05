@@ -1,8 +1,0 @@
-Make site better
-
-connect old site to new one as a mini addon
-or maybe make the bot say it if they want more gambeling
-
-Make art for the bot
-Art for some of the emojis
-Maybe upload and make it use it

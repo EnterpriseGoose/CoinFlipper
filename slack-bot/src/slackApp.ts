@@ -2,9 +2,55 @@ import { App } from "@slack/bolt";
 import { store } from "./storage/fileStore";
 import { logger } from "./logger";
 import { getBalance, runDailyGrantForAll } from "./economy";
+import { get } from "http";
 
 const COOLDOWN_MS = 60_000;
-const cooldwon = new Map<string, number>();
+const cooldown = new Map<string, number>();
+
+function isPlay(userId: string): boolean {
+    const u = store.get().users[userId];
+    return !!u?.play;
+}
+
+function onCooldown(key: string): boolean {
+    const now = Date.now();
+    const until = cooldown.get(key) || 0;
+    if (now < until) return true;
+    cooldown.set(key, now + COOLDOWN_MS);
+    return false;
+}
+
+async function safeAddReaction(
+    client: any,
+    channel: string,
+    ts: string,
+    name: string,
+    fallback?: string
+) {
+    try {
+        await client.reactions.add({ channel, timestamp: ts, name });
+    } catch (e) {
+        if (fallback) {
+            try {
+                await client.reactions.add({ channel, timestamp: ts, name: fallback });
+            } catch {
+
+            }
+        }
+    }
+}
+
+function getMessageSurfaceIds(msg: any) : { channel?:string; ts?: string } {
+    const channel = (msg as any).channel as string | undefined;
+    const ts = (msg as any).ts as string | undefined;
+    return { channel, ts};
+}
+
+function isChannelLike(id?: string) {
+    // REMEMBER C = PUBLIC || G = PRIVATE || D = DM
+    return !!id && (id.startsWith("C") || id.startsWith("G"));
+}
+
 
 function nowIso() { return new Date().toISOString(); }
 
@@ -150,6 +196,96 @@ export function buildSlackApp() {
                 }
             ]
         });
+    });
+
+    app.message(/\bcoin\b/i, async ({ message, client }) => {
+        const m: any = message;
+        const userId = m.user as string | undefined;
+        if (!userId || userId === "USLACKBOT") return;
+        if (!isPlay(userId)) return;
+        if (m.subtype) return;
+
+        const { channel, ts } = getMessageSurfaceIds(m);
+        if(!channel || !ts) return;
+
+        const key = `${userId}:${channel}:coin`;
+        if (onCooldown(key)) return;
+
+        await safeAddReaction(client, channel, ts, "siege-coin");
+    });
+
+    app.message(/\bgamble|gambling\b/i, async ({ message, client }) => {
+        const m: any = message;
+        const userId = m.user as string | undefined;
+        if (!userId || userId === "USLACKBOT") return;
+        if (!isPlay(userId)) return;
+        if (m.subtype) return;
+
+        const { channel, ts } = getMessageSurfaceIds(m);
+        if (!channel || !ts) return;
+
+        const key = `${userId}:${channel}:coin`;
+        if (onCooldown(key)) return;
+
+        await safeAddReaction(client, channel, ts, "siege-coin");
+    });
+
+    app.message(/\bgamble|gambling\b/i, async ({ message, client }) => {
+        const m: any = message;
+        const userId = m.user as string | undefined;
+        if (!userId || userId === "USLACKBOT") return;
+        if (!isPlay(userId)) return;
+        if (m.subtype) return;
+
+        const { channel, ts } = getMessageSurfaceIds(m);
+        if (!channel || !ts) return;
+
+        const key = `${userId}:${channel}:gamble`;
+        if (onCooldown(key)) return;
+
+        await safeAddReaction(client, channel, ts, "game_die", "slot_machine");
+
+        if (isChannelLike(channel)) {
+            try {
+                await client.chat.postEphemeral({
+                    channel,
+                    user: userId,
+                    text: "let's go **gambling**! 🎲",
+                });
+            } catch {} 
+        }
+    });
+
+    app.message(/\bwin(ned)?\b|\bwon\b/i, async ({ message, client}) => {
+        const m: any = message;
+        const userId = m.user as string | undefined;
+        if (!userId || userId === "USLACKBOT") return;
+        if (!isPlay(userId)) return;
+        if (m.subtype) return;
+
+        const { channel, ts } = getMessageSurfaceIds(m);
+        if (!channel || !ts) return;
+
+        const key = `${userId}:${channel}:win`;
+        if (onCooldown(key)) return;
+
+        await safeAddReaction(client, channel, ts, "heidi_happy", "tada")
+    });
+
+    app.message(/\blose\b|\blost\b/i, async ({ message, client }) => {
+        const m: any = message;
+        const userId = m.user as string | undefined;
+        if (!userId || userId === "USLACKBOT") return;
+        if (!isPlay(userId)) return;
+        if (m.subtype) return;
+
+        const { channel, ts } = getMessageSurfaceIds(m);
+        if (!channel || !ts) return;
+
+        const key = `${userId}:${channel}:lose`;
+        if (onCooldown(key)) return;
+
+        await safeAddReaction(client, channel, ts, "orpheus_sad", "cry");
     });
 
     //because socket is being stupid
