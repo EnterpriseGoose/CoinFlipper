@@ -1,29 +1,34 @@
 import "dotenv/config";
 import { App } from "@slack/bolt";
+import { CONFIG } from "./config.js";
+import { setLogLevel, logger } from "./logger.js";
+import { store } from "./storage/fileStore.js"
+import { scheduleDailyEt, scheduleWeeklyMondayEt } from "./scheduler.js";
+import { nowEt } from "./time.js";
 
-const app = new App({
-  token: process.env.SLACK_BOT_TOKEN,     
-  signingSecret: process.env.SLACK_SIGNING_SECRET,
-  socketMode: true,
-  appToken: process.env.SLACK_APP_TOKEN        
+async function init() {
+  setLogLevel(CONFIG.logLevel);
+  await store.init();
+
+  logger.info("Backend done", {
+    dataDir: CONFIG.dataDir,
+    stateFile: CONFIG.stateFile,
+    tz: CONFIG.etTz,
+    flags: store.get().featureFlags,
+  });
+  
+  // add payout and other stuff later
+  scheduleDailyEt("daily-midnight-et", async () => {
+    logger.info("Daily tick (ET)", { dateEt: nowEt().toISODate() });
+  });
+
+  // add weekly reset, leaderboard
+  scheduleWeeklyMondayEt("weekly-monday-et", async () => {
+    logger.info("Weekly tick (ET)", { weekOf: nowEt().toISODate() });
+  });
+}
+
+init().catch((e) => {
+  logger.error("Fatal init error idiot", { error: e?.message || String(e)});
+  process.exit(1);
 });
-
-app.event("app_mention", async ({ event, say }) => {
-  await say(`Hey <@${event.user}>! I'm alive ✅  Try /hello.`);
-});
-
-app.command("/hello", async ({ ack, respond, command }) => {
-  await ack();
-  await respond(`Hello, <@${command.user_id}>! 👋`);
-});
-
-app.command("/gamble", async ({ ack, respond, command }) => {
-  await ack();
-  await respond('Among us')
-})
-
-const port = Number(process.env.PORT) || 3000;
-(async () => {
-  await app.start({ port });
-  console.log(`GAMBELING TIME ON ${port} (On socket time)`);
-})();

@@ -6,21 +6,72 @@ SLACK BOT THAT ENABLES GAMBLING YEAHHH
 
 Key features:
 
-First is opt-in, then opt into reactions
+First is opt-in(reactions added), then opt into seeing commands(other people playing, others doing /leaderboard, etc. You can just run commnands by just opting into the basic one.) Will ask if they want to opt into commands every day
+
+Commands:
+/stopgambling
+
 
 Reacts to messages and adds emojis:
     Coin - add coin reaction
-    Gamble, gambeling - 
-    Win, won -
-    Lose, Lost -
+    Gamble, gambeling - lets go gambeling or smth
+    Win, won - heidi happy
+    Lose, Lost - orpheous sad
+
+Ai:
+Ai debate - try to argue to an ai about how gambeling is morally good
+    based on how good it is awards coins
+    but since ai reward system takes too long, all requests will be sent to me before giving payour
 
 Game:
+Three games you can do:
+Flip a coin - Flip a coin, you have to call which side before flipping
+Old Maid(joker version) - Each player gets 4 cards, they have to each pick a card from the other's hand and 1 card from each hand is taken away from each turn(not joker though)
+Poker - Just regular poker(maybe play using emojis or smth)
+typing battle - speec to see how fast each person can type a certain sentence(chosen from a bank of cards)
 
+
+Battle:
+Either pvp or against an ai dealer I need to check salck bot's capabilities
+/challenge @username or dealer
+    Then do a game
+    Then an amount of coins
+    Other side has to accept
+    Play 
+    Winner gets all, loser loses everything
+    Double or nothing button appears
+
+Shop:
+You can certain power-ups and cosmetics at the store
+Streak saver - saves you from losing your gambeling Streak
+Game breaker - you can choose to mkake it so that a game doesn't count
+Sigma - Don't get your coins reset at the end of the week 
+Reactor - The bot will now respond to every message you send and glaze you 
+
+Streak:
+Every day you 
 
 Leaderboard:
+/leaderboard - posts top 10 with the most coins, displays users relative rank at the bottom and says "You are number #"
+Daily refresh - every day at 12:00 AM EST bot posts top 10 with their streak, user can see their own relative score and streak
+Every week at Monday 12:00 AM winners are announced, coins reset
+Also person with lowest amount of coins announced too
 
+Coins:
+/coin to check coin balance
+Every day everyone is given 100 coins.
+For games, you are allowed to bet more then what you have as long as you have a positive number of coins. If you have a negative number, you cannot play any games
 
 Secret:
-
+The secret coin
+Chance for someone to get it (1 in a million odds) Once they do, they get dmd that they got it and they can brag about it if they want
+Also there are 3 of these
+They don't get wiped from the weekly reset, once you get all three the bot will publically annouce to everyone and the person who has the coins will get 1 million coins
 
 Reach:
+More/better art pieces
+
+
+daily coin flip?
+
+sfx with button press/emote?
