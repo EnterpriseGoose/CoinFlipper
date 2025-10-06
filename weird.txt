@@ -1,0 +1,28 @@
+async function resolveUserIdByHandle(client: any, token: string): Promise<string | null> {
+    const handle = token.replace(/^@/, "").toLowerCase(); // "ocoincs"
+    let cursor: string | undefined;
+    
+    try {
+        do {
+            const res = await client.users.list({ limit: 200, cursor });
+            const members = (res.members as any[]) ?? [];
+            
+            for (const m of members) {
+                if (m.deleted || m.is_bot) continue;
+                const uname = (m.name ?? "").toLowerCase();           // ← Username (like "ocoincs")
+                const dname = (m.profile?.display_name ?? "").toLowerCase(); // ← Display name (like "qwik")
+                const rname = (m.profile?.real_name ?? "").toLowerCase();    // ← Real name
+                
+                // Only checks EXACT matches
+                if (uname === handle || dname === handle || rname === handle) {
+                    return m.id as string;
+                }
+            }
+            cursor = res.response_metadata?.next_cursor || undefined;
+        } while (cursor);
+    } catch (e: any) {
+        logger.error("Error resolving user handle", { handle, error: e?.message });
+    }
+    
+    return null;
+}

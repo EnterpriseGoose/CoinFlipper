@@ -1,41 +1,66 @@
+import { DateTime } from "luxon";
+import { CONFIG } from "./config.js";
 import { logger } from "./logger.js";
-import { msUntil, nextMidnightEt, nextWeeklyMondayEt, nowEt } from "./time.js";
 
 type JobFn = () => Promise<void> | void;
 
-function scheduleOnce(whenMsFromNow: number, name: string, fn: JobFn) {
-  logger.info("Scheduling job", { name, inMs: whenMsFromNow });
-  setTimeout(async () => {
-    try {
-      logger.info("Job start", { name, at: nowEt().toISO() });
-      await fn();
-      logger.info("Job finish", { name, at: nowEt().toISO() });
-    } catch (e: any) {
-      logger.error("Job error", { name, error: e?.message || String(e) });
-    }
-  }, whenMsFromNow).unref?.(); // allow process to exit if nothing else
+function clampDelay(ms: number): number {
+  if (!Number.isFinite(ms)) return 1000;
+  return Math.max(1000, Math.floor(ms));
+}
+
+function msUntil(target: DateTime): number {
+  const now = DateTime.now().setZone(CONFIG.etTz);
+  const diff = target.diff(now).as("milliseconds");
+  return clampDelay(diff);
+}
+
+function nextMidnightEt(): DateTime {
+  const now = DateTime.now().setZone(CONFIG.etTz);
+  return now.plus({ days: 1 }).startOf("day");
+}
+
+function nextMondayMidnightEt(): DateTime {
+  const now = DateTime.now().setZone(CONFIG.etTz);
+  const daysUntilMon = ((8 - now.weekday) % 7) || 7;
+  return now.plus({ days: daysUntilMon }).startOf("day");
 }
 
 export function scheduleDailyEt(name: string, fn: JobFn) {
-  const scheduleNext = () => {
-    const next = nextMidnightEt();
-    const ms = msUntil(next);
-    scheduleOnce(ms, name, async () => {
+  async function run() {
+    logger.info("Job start", { name, at: DateTime.now().toISO() });
+    try {
       await fn();
-      scheduleNext();
-    });
-  };
-  scheduleNext();
+    } catch (e: any) {
+      logger.error("Job error", { name, error: e?.message || String(e) });
+    } finally {
+      logger.info("Job finish", { name, at: DateTime.now().toISO() });
+      const delay = msUntil(nextMidnightEt());
+      logger.info("Scheduling job", { name, inMs: delay });
+      setTimeout(run, delay);
+    }
+  }
+
+  const delay = msUntil(nextMidnightEt());
+  logger.info("Scheduling job", { name, inMs: delay });
+  setTimeout(run, delay);
 }
 
 export function scheduleWeeklyMondayEt(name: string, fn: JobFn) {
-  const scheduleNext = () => {
-    const next = nextWeeklyMondayEt();
-    const ms = msUntil(next);
-    scheduleOnce(ms, name, async () => {
+  async function run() {
+    logger.info("Job start", { name, at: DateTime.now().toISO() });
+    try {
       await fn();
-      scheduleNext();
-    });
-  };
-  scheduleNext();
+    } catch (e: any) {
+      logger.error("Job error", { name, error: e?.message || String(e) });
+    } finally {
+      logger.info("Job finish", { name, at: DateTime.now().toISO() });
+      const delay = msUntil(nextMondayMidnightEt());
+      logger.info("Scheduling job", { name, inMs: delay });
+      setTimeout(run, delay);
+    }
+  }
+  const delay = msUntil(nextMondayMidnightEt());
+  logger.info("Scheduling job", { name, inMs: delay });
+  setTimeout(run, delay);
 }
