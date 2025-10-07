@@ -17,6 +17,7 @@
 		"luxon": "^3.4.4"
 	},
 	"devDependencies": {
+		"@types/luxon": "^3.3.8",
 		"@types/node": "^24.6.2",
 		"tsx": "^4.20.6",
 		"typescript": "^5.9.3"
