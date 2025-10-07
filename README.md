@@ -18,6 +18,13 @@ DEMO:
 ![Demo](assets/demovid.gif)
 __________________________________________________________________________
 
+Tech Stack:
+    Node.js + TypeScript
+    Slack Bolt (Socket Mode) + Slack Web API
+    Local JSON file store (./storage/fileStore) for state/balances
+    Static docs site: plain HTML + CSS + vanilla JS
+
+
 Psst...
 
 <details><summary>whats here?</summary>
