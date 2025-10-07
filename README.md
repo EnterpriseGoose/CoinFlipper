@@ -1,6 +1,8 @@
 # CoinFlipper
 Siege Week 5 Project: Gambler!
 
+#REVIEWERS - IF THE BOT DOESN'T WORK, MESSAGE ME @IAMALIVE. THE BOT RUNS OFF MY COMPUTER
+
 A Slack Bot that enables, encourages, and excemplifies gambeling!
 
 Another
@@ -19,10 +21,14 @@ DEMO:
 __________________________________________________________________________
 
 Tech Stack:
-    Node.js + TypeScript
-    Slack Bolt (Socket Mode) + Slack Web API
-    Local JSON file store (./storage/fileStore) for state/balances
-    Static docs site: plain HTML + CSS + vanilla JS
+
+Node.js + TypeScript
+
+Slack Bolt (Socket Mode) + Slack Web API
+
+Local JSON file store (./storage/fileStore) for state/balances
+
+Static docs site: plain HTML + CSS + vanilla JS
 
 
 Psst...
