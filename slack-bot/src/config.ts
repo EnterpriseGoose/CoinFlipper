@@ -25,4 +25,6 @@ export const CONFIG = {
     stateFile: STATE_FILE,
     logLevel: LOG_LEVEL,
     defaultFlags: DEFAULT_FLAGS,
+    leaderboardChannelId: process.env.SLACK_LEADERBOARD_CHANNEL_ID || "C08SKC6P85V", 
+
 };

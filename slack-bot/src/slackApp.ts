@@ -4,9 +4,10 @@ import { logger } from "./logger";
 import { getBalance } from "./economy";
 import { createChallengeRecord, setChallengeRootMessage, acceptChallengeAndLockStake, declineChallenge, refundStakes, getChallenge } from "./challenge";
 import { canStartBet } from "./economy";  
+import { addTransaction } from "./ledger";
+import { LogLevel } from "@slack/bolt";
 
-
-const COOLDOWN_MS = 60_000;
+const COOLDOWN_MS = 1_000;
 const cooldown = new Map<string, number>()
 
 function isPlay(userId: string): boolean {
@@ -78,6 +79,93 @@ function parseUserMention(text: string): string | null {
     return m ? m [1] : null;
 }
 
+function sleep(ms: number) { return new Promise(r => setTimeout(r, ms)); }
+
+async function maybeAwardSecretCoin(client: any, userId: string, reason = "game") {
+  await store.update(s => {
+    if (!(s as any).secretCoins) {
+      (s as any).secretCoins = { globalCap: 3, awards: [] };
+    }
+  });
+
+  const s = store.get();
+  if (s.secretCoins.awards.length >= s.secretCoins.globalCap) return;
+
+  if (Math.random() < 1 / 1_000_000) {
+    await store.update(st => {
+      st.secretCoins.awards.push({
+        userId,
+        at: new Date().toISOString(),
+        reason
+      });
+    });
+
+    try {
+      const im = await client.conversations.open({ users: userId });
+      await client.chat.postMessage({
+        channel: im.channel!.id!,
+        text: "🪙 **Secret Coin found!** You discovered a 1-in-a-million coin. This persists across resets."
+      });
+    } catch {}
+  }
+}
+
+
+async function runCoinFlip(client: any, challengeId: string) {
+    const rec = getChallenge(challengeId);
+    if (!rec) return;
+    if (rec.state !== "accepted") return;
+    if (rec.opponent.kind !== "user") return; 
+
+    const channelId = rec.channel;
+    const ts = rec.rootTs;
+    const a = rec.challengerId;
+    const b = rec.opponent.id;
+    const coinSide = Math.random() < 0.5 ? "Heads" : "Tails";
+    const winnerId = Math.random() < 0.5 ? a : b;
+    const loserId = winnerId === a ? b : a;
+
+    try {
+        await client.chat.postMessage({ channel: channelId, thread_ts: ts, text: "🪙 Flipping the coin…" });
+        await sleep(700);
+        await client.chat.postMessage({ channel: channelId, thread_ts: ts, text: `It lands on *${coinSide}*!` });
+        await sleep(250);
+
+        await addTransaction(winnerId, "win", rec.stake * 2, {
+        refId: `challenge:${rec.id}`,
+        idemKey: `challenge:${rec.id}:payout:${winnerId}`
+        });
+
+        await client.chat.postMessage({
+        channel: channelId,
+        thread_ts: ts,
+        text: `🏆 <@${winnerId}> wins the pot (*${rec.stake}* net)!`
+        });
+
+        if (ts) {
+        await client.chat.update({
+            channel: channelId,
+            ts,
+            text: `Challenge resolved: <@${winnerId}> won.`,
+            blocks: [
+            { type: "section", text: { type: "mrkdwn", text: `*Coin flip result:* <@${winnerId}> wins *${rec.stake}* net.` } }
+            ]
+        });
+        }
+
+        await maybeAwardSecretCoin(client, winnerId);
+        await maybeAwardSecretCoin(client, loserId);
+
+        touchStreak(winnerId);
+        touchStreak(loserId);
+
+    } catch (e: any) {
+        try {
+        await client.chat.postMessage({ channel: channelId, thread_ts: ts, text: `⚠️ Error resolving game. Refunding stakes.` });
+        } catch {}
+        try { await refundStakes(rec.id); } catch {}
+    }
+}
 
 type ChallengeParseOk = {
   ok: true;
@@ -127,7 +215,7 @@ function parseChallengeArgs(txt: string): ChallengeParse {
 
 async function resolveUserIdByHandle(client: any, token: string): Promise<string | null> {
     const handle = token.replace(/^@/, "").toLowerCase();
-    console.log("Looking for handle:", handle); // Add this
+    console.log("Looking for handle:", handle); 
     let cursor: string | undefined;
     
     try {
@@ -135,21 +223,20 @@ async function resolveUserIdByHandle(client: any, token: string): Promise<string
             const res = await client.users.list({ limit: 200, cursor });
             const members = (res.members as any[]) ?? [];
             
-            console.log(`Checking ${members.length} users...`); // Add this
+            console.log(`Checking ${members.length} users...`); 
             
             for (const m of members) {
                 if (m.deleted || m.is_bot) continue;
                 const uname = (m.name ?? "").toLowerCase();
                 const dname = (m.profile?.display_name ?? "").toLowerCase();
                 const rname = (m.profile?.real_name ?? "").toLowerCase();
-                
-                // Add this debug line to see what usernames exist
+            
                 if (uname.includes("qwik") || dname.includes("qwik") || rname.includes("qwik")) {
                     console.log("Found potential match:", { uname, dname, rname, id: m.id });
                 }
                 
                 if (uname === handle || dname === handle || rname === handle) {
-                    console.log("Exact match found:", { uname, dname, rname, id: m.id }); // Add this
+                    console.log("Exact match found:", { uname, dname, rname, id: m.id });
                     return m.id as string;
                 }
             }
@@ -180,13 +267,41 @@ async function setSee(userId: string, on: boolean) {
     });
 }
 
+function touchStreak(userId: string) {
+    store.update(s => {
+        const u = s.users[userId];
+        if (!u) return;
+        u.stats.currentStreak = (u.stats.currentStreak || 0) + 1;
+        u.stats.longestStreak = Math.max(u.stats.longestStreak || 0, u.stats.currentStreak);
+        u.updatedAt = new Date().toISOString();
+    });
+}
+
 export function buildSlackApp() {
     const app = new App({
         token: process.env.SLACK_BOT_TOKEN,
         socketMode: true,
         appToken: process.env.SLACK_APP_TOKEN,
         signingSecret: process.env.SLACK_SIGNING_SECRET,
+        logLevel: LogLevel.WARN,
     });
+
+    app.command("/leaderboard", async ({ ack, respond }) => {
+        await ack();
+        const s = store.get();
+        const rows = Object.values(s.balances || {})
+            .map((b: any) => ({ userId: b.userId, amount: b.amount }))
+            .sort((a, b) => b.amount - a.amount)
+            .slice(0, 10);
+        
+        if (!rows.length) {
+            await respond({ response_type: "ephemeral", text: "No balances yet." });
+            return;
+        }
+            
+        const lines = rows.map((r, i) => `${i + 1}. <@${r.userId}> — ${r.amount}`);
+        await respond({ response_type: "ephemeral", text: "*Top 10 by coins:*\n" + lines.join("\n") });
+    })
 
     //add special emoji reaction
     app.event("reaction_added", async ({ event, client, logger: boltLogger }) => {
@@ -294,6 +409,14 @@ export function buildSlackApp() {
         const post = await client.chat.postMessage({
             channel: channelId,
             text: textHead,
+            blocks: [{ type: "section", text: { type: "mrkdwn", text: textHead } }]
+        });
+        await setChallengeRootMessage(rec.id, channelId, (post as any).ts);
+
+        await client.chat.postEphemeral({
+            channel: channelId,
+            user: opponentId,
+            text: `You were challenged by <@${userId}> to *coin flip* for *${stake}* coins. Accept or decline above.`,
             blocks: [
                 { type: "section", text: { type: "mrkdwn", text: textHead } },
                 {
@@ -304,14 +427,6 @@ export function buildSlackApp() {
                     ]
                 }
             ]
-        });
-
-        await setChallengeRootMessage(rec.id, channelId, (post as any).ts);
-
-        await client.chat.postEphemeral({
-            channel: channelId,
-            user: opponentId,
-            text: `You were challenged by <@${userId}> to *coin flip* for *${stake}* coins. Accept or decline above.`
         });
 
         await respond({ delete_original: true });
@@ -371,6 +486,20 @@ export function buildSlackApp() {
             ]
         });
     });
+
+    app.command("/see", async ({ ack, respond, command }) => {
+        await ack();
+        const arg = (command.text || "").trim().toLowerCase();
+
+        if (arg !== "on" && arg !== "off") {
+            await respond({ response_type: "ephemeral", text: "Usage: `/see on` or `/see off`" });
+            return;
+        }
+
+        await setSee(command.user_id, arg === "on");
+        await respond({ response_type: "ephemeral", text: `SEE is now *${arg}*.` });
+    });
+
 
     app.message(/\bcoin\b/i, async ({ message, client }) => {
         const m: any = message;
@@ -447,147 +576,6 @@ export function buildSlackApp() {
         await safeAddReaction(client, channel, ts, "orpheus_sad", "cry");
     });
 
-    // app.command("/challenge", async ({ ack, respond, command, client, logger }) => {
-    //     await ack();
-    //     try {
-    //         const userId = command.user_id;
-    //         const channelId = command.channel_id;
-
-    //         logger?.info?.("challenge:received", { text: command.text, userId, channelId });
-
-    //         const s = store.get();
-    //         if (!s.users[userId]?.play) {
-    //             await respond({ response_type: "ephemeral", text: "You must opt in first. React with :siege-coin: to opt in." });
-    //             return;
-    //         }
-
-    //         const parts = (command.text || "").trim().split(/\s+/).filter(Boolean);
-    //         let parsed = parseChallengeArgs(command.text || "");
-
-    //         if (!parsed.ok && parts[0]?.startsWith("@") && parts.length >= 3) {
-    //         const handleUid = await resolveUserIdByHandle(client, parts[0]);
-    //         if (!handleUid) {
-    //             await respond({ response_type: "ephemeral", text: `Couldn't find user ${parts[0]}. Try picking them from the mention popup.` });
-    //             return;
-    //         }
-    //         parsed = parseChallengeArgs(`<@${handleUid}> ${parts[1]} ${parts[2]}`);
-    //         }
-
-    //         if (!parsed.ok) {
-    //         await client.views.open({
-    //             trigger_id: command.trigger_id,
-    //             view: {
-    //             type: "modal",
-    //             callback_id: "challenge_modal",
-    //             private_metadata: JSON.stringify({ channelId }),
-    //             title: { type: "plain_text", text: "Start a challenge" },
-    //             submit: { type: "plain_text", text: "Start" },
-    //             close: { type: "plain_text", text: "Cancel" },
-    //             blocks: [
-    //                 { type: "input", block_id: "op", label: { type: "plain_text", text: "Opponent" }, element: { type: "users_select", action_id: "opponent" } },
-    //                 { type: "input", block_id: "gm", label: { type: "plain_text", text: "Game" }, element: { type: "static_select", action_id: "game",
-    //                     options: [
-    //                     { text: { type: "plain_text", text: "Coin flip" }, value: "coin_flip" },
-    //                     { text: { type: "plain_text", text: "Old Maid" }, value: "old_maid" },
-    //                     { text: { type: "plain_text", text: "Poker" }, value: "poker" },
-    //                     { text: { type: "plain_text", text: "Typing battle" }, value: "typing_battle" }
-    //                     ] } },
-    //                 { type: "input", block_id: "st", label: { type: "plain_text", text: "Stake (coins)" }, element: { type: "plain_text_input", action_id: "stake" } }
-    //             ]
-    //             }
-    //         });
-    //         await respond({ response_type: "ephemeral", text: "Pick opponent/game/stake in the modal." });
-    //         return;
-    //         }
-
-
-    //         const can = canStartBet(userId);
-    //         if (!can.ok) {
-    //             await respond({ response_type: "ephemeral", text: can.reason! });
-    //             return;
-    //         }
-
-    //         if (parsed.opponent === "user" && parsed.opponentId === userId) {
-    //             await respond({ response_type: "ephemeral", text: "You can’t challenge yourself." });
-    //             return;
-    //         }
-
-    //         const rec = await createChallengeRecord({
-    //             channel: channelId,
-    //             challengerId: userId,
-    //             opponent: parsed.opponent === "dealer" ? { kind: "dealer" } : { kind: "user", id: parsed.opponentId! },
-    //             game: parsed.game,
-    //             stake: parsed.stake,
-    //         });
-
-    //         logger?.info?.("challenge:created", { id: rec.id, game: rec.game, stake: rec.stake, opponent: rec.opponent });
-
-    //         const textHead = `<@${userId}> challenged ` + (rec.opponent.kind === "user" ? `<@${(rec.opponent as any).id}>` : "*the dealer*") +` to *${rec.game.replace("_", " ")}* for *${rec.stake}* coins.`;
-
-    //         if (rec.opponent.kind === "user") {
-    //             const post = await client.chat.postMessage({
-    //                 channel: channelId,
-    //                 text: textHead,
-    //                 blocks: [
-    //                     { type: "section", text: { type: "mrkdwn", text: textHead } },
-    //                     {
-    //                         type: "actions",
-    //                         elements: [
-    //                             { type: "button", text: { type: "plain_text", text: "Accept" }, style: "primary", action_id: "challenge_accept", value: rec.id },
-    //                             { type: "button", text: { type: "plain_text", text: "Decline" }, style: "danger", action_id: "challenge_decline", value: rec.id },
-    //                         ],
-    //                     },
-    //                 ],
-    //             });
-
-    //         await setChallengeRootMessage(rec.id, channelId, (post as any).ts);
-
-    //         await client.chat.postEphemeral({
-    //             channel: channelId,
-    //             user: (rec.opponent as any).id,
-    //             text: `You were challenged by <@${userId}> to *${rec.game.replace("_", " ")}* for *${rec.stake}* coins. Accept or decline above.`,
-    //         });
-
-    //         await respond({ response_type: "ephemeral", text: "Challenge posted. Waiting for acceptance…" });
-            
-    //         } else {
-    //             const post = await client.chat.postMessage({
-    //                 channel: channelId,
-    //                 text: textHead + " Dealer is thinking…",
-    //                 blocks: [{ type: "section", text: { type: "mrkdwn", text: textHead + "\n_Dealer accepts._" } }],
-    //             });
-
-    //         await setChallengeRootMessage(rec.id, channelId, (post as any).ts);
-
-    //         const accepted = await acceptChallengeAndLockStake(rec.id, userId);
-    //         if (!accepted.ok) {
-    //             await client.chat.postMessage({
-    //                 channel: channelId,
-    //                 thread_ts: (post as any).ts,
-    //                 text: `Could not start: ${accepted.reason}`,
-    //             });
-    //             await refundStakes(rec.id);
-    //             return;
-    //         }
-
-    //         await client.chat.postMessage({
-    //             channel: channelId,
-    //             thread_ts: (post as any).ts,
-    //             text: `Challenge accepted by *dealer*. (Game flow starts in Phase 5.)`,
-    //         });
-
-    //         await respond({ response_type: "ephemeral", text: "Dealer accepted. Game will start (Phase 5)." });
-    //         }
-
-    //     } catch (e: any) {
-    //         logger?.error?.("challenge:handler-error", { error: e?.message, stack: e?.stack });
-    //         try {
-    //             await respond({ response_type: "ephemeral", text: "Something went wrong starting the challenge. Try again." });
-    //         } catch { /* ignore */ }
-    //     }
-    // });
-
-
     app.view("challenge_modal", async ({ ack, body, view, client, logger }) => {
         await ack();
 
@@ -608,7 +596,7 @@ export function buildSlackApp() {
             }
 
             const game = (view.state.values?.gm?.game?.selected_option?.value ?? "coin_flip") as
-            "coin_flip" | "old_maid" | "poker" | "typing_battle";
+                "coin_flip" | "old_maid" | "poker" | "typing_battle";
             const stakeRaw = (view.state.values?.st?.stake?.value ?? "").trim();
             const stake = Number(stakeRaw);
 
@@ -647,24 +635,24 @@ export function buildSlackApp() {
             const post = await client.chat.postMessage({
             channel: channelId,
             text: textHead,
-            blocks: [
-                { type: "section", text: { type: "mrkdwn", text: textHead } },
-                {
-                type: "actions",
-                elements: [
-                    { type: "button", text: { type: "plain_text", text: "Accept" }, style: "primary", action_id: "challenge_accept", value: rec.id },
-                    { type: "button", text: { type: "plain_text", text: "Decline" }, style: "danger", action_id: "challenge_decline", value: rec.id }
-                ]
-                }
-            ]
+            blocks: [{ type: "section", text: { type: "mrkdwn", text: textHead } }]
             });
-
             await setChallengeRootMessage(rec.id, channelId, (post as any).ts);
 
             await client.chat.postEphemeral({
-            channel: channelId,
-            user: opponentId,
-            text: `You were challenged by <@${challengerId}> to *${game.replace("_"," ")}* for *${stake}* coins. Accept or decline above.`
+                channel: channelId,
+                user: opponentId,
+                text: `You were challenged by <@${challengerId}> to *${game.replace("_"," ")}* for *${stake}* coins. Accept or decline below.`,
+                blocks: [
+                    { type: "section", text: { type: "mrkdwn", text: textHead } },
+                    {
+                    type: "actions",
+                    elements: [
+                        { type: "button", text: { type: "plain_text", text: "Accept" }, style: "primary", action_id: "challenge_accept", value: rec.id },
+                        { type: "button", text: { type: "plain_text", text: "Decline" }, style: "danger", action_id: "challenge_decline", value: rec.id }
+                    ]
+                }
+                ]
             });
 
         } catch (e: any) {
@@ -681,18 +669,41 @@ export function buildSlackApp() {
         if (!challengeId || !userId || !channelId) return;
 
         const rec = getChallenge(challengeId);
-        if (!rec) { await respond?.({ response_type:"ephemeral", text:"Challenge no longer exists." }); return; }
+
+        if (!rec) {
+            await client.chat.postEphemeral({
+            channel: channelId,
+            user: userId,
+            text: "Challenge no longer exists."
+            });
+            return;
+        }
         if (rec.opponent.kind !== "user" || rec.opponent.id !== userId) {
-            await respond?.({ response_type:"ephemeral", text:"Only the challenged user can accept." });
+            await client.chat.postEphemeral({
+            channel: channelId,
+            user: userId,
+            text: "Only the challenged user can accept this."
+            });
             return;
         }
         if (!store.get().users[userId]?.play) {
-            await respond?.({ response_type:"ephemeral", text:"Opt in first: react with :siege-coin: then tap Accept again." });
+            await client.chat.postEphemeral({
+            channel: channelId,
+            user: userId,
+            text: "Opt in first: react with :siege-coin: then tap Accept again."
+            });
             return;
         }
 
         const res = await acceptChallengeAndLockStake(challengeId, userId);
-        if (!res.ok) { await respond?.({ response_type:"ephemeral", text:`Could not accept: ${res.reason}` }); return; }
+        if (!res.ok) {
+            await client.chat.postEphemeral({
+            channel: channelId,
+            user: userId,
+            text: `Could not accept: ${res.reason}`
+            });
+            return;
+        }
 
         const ts = getChallenge(challengeId)?.rootTs;
         await client.chat.postMessage({ channel: channelId, thread_ts: ts, text: `✅ <@${userId}> accepted. Stakes locked. (Game runs in Phase 5.)` });
@@ -703,9 +714,11 @@ export function buildSlackApp() {
             blocks: [{ type: "section", text: { type: "mrkdwn", text: `*Challenge accepted.*` } }]
             });
         }
-        });
 
-        app.action("challenge_decline", async ({ ack, body, client, respond }) => {
+        await runCoinFlip(client, challengeId);
+    });
+
+    app.action("challenge_decline", async ({ ack, body, client, respond }) => {
         await ack();
         const action = (body as any).actions?.[0];
         const challengeId = action?.value as string | undefined;
@@ -714,9 +727,20 @@ export function buildSlackApp() {
         if (!challengeId || !userId || !channelId) return;
 
         const rec = getChallenge(challengeId);
-        if (!rec) { await respond?.({ response_type:"ephemeral", text:"Challenge no longer exists." }); return; }
+        if (!rec) {
+            await client.chat.postEphemeral({
+            channel: channelId,
+            user: userId,
+            text: "Challenge no longer exists."
+            });
+            return;
+        }
         if (rec.opponent.kind !== "user" || rec.opponent.id !== userId) {
-            await respond?.({ response_type:"ephemeral", text:"Only the challenged user can decline." });
+            await client.chat.postEphemeral({
+            channel: channelId,
+            user: userId,
+            text: "Only the challenged user can decline this."
+            });
             return;
         }
 
@@ -734,6 +758,42 @@ export function buildSlackApp() {
         }
     });
 
+    app.command("/shop", async ({ ack, respond }) => {
+        await ack();
+        await respond({
+            response_type: "ephemeral",
+            text: [
+            "*Shop*",
+            "• Streak Saver — 50",
+            "• Sigma (keep coins through weekly reset) — 5000",
+            "",
+            "Buy with `/buy saver` or `/buy sigma`"
+            ].join("\n")
+        });
+        });
+
+        app.command("/buy", async ({ ack, respond, command }) => {
+        await ack();
+        const userId = command.user_id;
+        const item = (command.text || "").trim().toLowerCase();
+        const price = item === "saver" ? 50 : item === "sigma" ? 5000 : null;
+        if (!price) { await respond({ response_type: "ephemeral", text: "Usage: `/buy saver` or `/buy sigma`" }); return; }
+
+        const bal = getBalance(userId);
+        if (bal < price) { await respond({ response_type: "ephemeral", text: "Not enough coins." }); return; }
+
+        try {
+            await addTransaction(userId, "purchase", -price, { refId: `shop:${item}`, idemKey: `shop:${item}:${userId}:${Date.now()}` });
+            await store.update(s => {
+            (s as any).inventory = (s as any).inventory || {};
+            (s as any).inventory[userId] = (s as any).inventory[userId] || {};
+            (s as any).inventory[userId][item] = ((s as any).inventory[userId][item] || 0) + 1;
+            });
+            await respond({ response_type: "ephemeral", text: `Purchased *${item}*.` });
+        } catch {
+            await respond({ response_type: "ephemeral", text: "Could not complete purchase." });
+        }
+    });
 
 
     //because socket is being stupid

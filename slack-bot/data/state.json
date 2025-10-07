@@ -44,6 +44,17 @@
         "currentStreak": 0,
         "longestStreak": 0
       }
+    },
+    "U090B1V22BD": {
+      "id": "U090B1V22BD",
+      "play": true,
+      "see": false,
+      "createdAt": "2025-10-07T03:43:17.846Z",
+      "updatedAt": "2025-10-07T03:45:17.573Z",
+      "stats": {
+        "currentStreak": 0,
+        "longestStreak": 0
+      }
     }
   },
   "balances": {
@@ -66,6 +77,11 @@
       "userId": "U0947SL6AKB",
       "amount": 90,
       "updatedAt": "2025-10-06T04:35:11.093Z"
+    },
+    "U090B1V22BD": {
+      "userId": "U090B1V22BD",
+      "amount": 100,
+      "updatedAt": "2025-10-07T03:45:18.363Z"
     }
   },
   "inventory": {},
@@ -169,6 +185,16 @@
       "refId": "challenge:e4e5eee9-abbf-46ed-a25e-fcd57ef8883f",
       "idemKey": "challenge:e4e5eee9-abbf-46ed-a25e-fcd57ef8883f:stake:U0828FYS2UC",
       "createdAt": "2025-10-06T04:35:11.096Z"
+    },
+    {
+      "txId": "d7f0c999-4a97-4e8b-94f2-3ab2841a5212",
+      "userId": "U090B1V22BD",
+      "type": "grant",
+      "amount": 100,
+      "balanceAfter": 100,
+      "refId": "daily_grant",
+      "idemKey": "daily:null",
+      "createdAt": "2025-10-07T03:45:18.363Z"
     }
   ],
   "games": {
@@ -328,6 +354,10 @@
     "tx:U0828FYS2UC:challenge:e4e5eee9-abbf-46ed-a25e-fcd57ef8883f:stake:U0828FYS2UC": {
       "key": "tx:U0828FYS2UC:challenge:e4e5eee9-abbf-46ed-a25e-fcd57ef8883f:stake:U0828FYS2UC",
       "createdAt": "2025-10-06T04:35:11.095Z"
+    },
+    "tx:U090B1V22BD:daily:null": {
+      "key": "tx:U090B1V22BD:daily:null",
+      "createdAt": "2025-10-07T03:45:18.359Z"
     }
   },
   "featureFlags": {
@@ -341,5 +371,5 @@
     "aiDebate": true
   },
   "createdAt": "2025-10-05T18:28:11.113Z",
-  "updatedAt": "2025-10-06T04:35:11.097Z"
+  "updatedAt": "2025-10-07T03:45:18.363Z"
 }

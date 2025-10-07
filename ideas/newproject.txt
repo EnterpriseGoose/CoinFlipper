@@ -82,3 +82,45 @@ Way to urls to open on user end somehow
 make it so that it reacts to certain emojis/reactions
 
 I mean maybe like an image can be shown or smth 
+
+Phase 0 — Foundations & Guardrails
+Audited file-store, ET timezone baseline, logging/metrics, idempotency & simple locks, least-privilege, feature flags. Accept: ET jobs trigger; every balance change logged.
+
+Phase 1 — Opt-In / Opt-Out (PLAY & SEE)
+:coin: reaction → PLAY; /see on|off; /stopgambling fully opts out. Accept: reversible, rate-limited.
+
+Phase 2 — Coins & Economy
+Daily +100 at 00:00 ET; /coin shows balance/streak; full ledger (grant/bet/win/loss/purchase/refund/admin). Accept: grant idempotent; balances consistent.
+
+Phase 3 — Reactive Emoji & Keywords
+Reactions for coin/gamble/win/lose with per-user/channel cooldown; optional hype text. Accept: never reacts to opted-out users.
+
+Phase 4 — Challenge Framework (PvP & Dealer)
+One flow: /challenge → accept/decline; auto-cancel on timeout; stake lock at accept; thread updates; optional double-or-nothing. Accept: PvP & dealer end-to-end with refunds on cancel.
+
+Phase 5 — Game 1: Coin Flip
+Call heads/tails, flip, resolve 1:1; dealer or PvP; clean ledger & locks. Accept: correct payout, no orphans.
+
+Phase 6 — Leaderboard & Announcements
+/leaderboard, daily top-10 announcement, weekly winners + reset (respect Sigma). Accept: posts render; weekly reset writes txs once.
+
+Phase 7 — Streak Engine
+Qualifying action per ET day; update current/longest; /streak DM. Accept: correct across DST/boundary tests.
+
+Phase 8 — Shop & Power-Ups
+Inventory + items: Streak Saver, Game Breaker, Sigma, Reactor. Accept: purchases debit, effects apply at right moments.
+
+Phase 9 — AI Debate (Manual Payout)
+User starts debate; private review queue; Approve/Reject/Adjust; tx on approval. Accept: no payout without approval.
+
+Phase 10 — Game 2: Typing Battle
+Same prompt, validate accuracy/time; dealer target time. Accept: deterministic winner; correct ledger.
+
+Phase 11 — Game 3: Old Maid
+2–4 players, Joker loses; DMs for hands; thread updates. Accept: deterministic state machine; fair resolution.
+
+Phase 12 — Game 4: Poker (Heads-Up)
+Hole cards via DM, actions via buttons, pot/blinds, evaluator. Accept: correct pot & hand resolution.
+
+Phase 13 — Secret Coins (3 total)
+1-in-1,000,000 roll on qualifying actions; max 3 globally; owning all 3 → announce + 1,000,000 coins once. Accept: never >3; ownership persists; grand award triggers once. 

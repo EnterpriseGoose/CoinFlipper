@@ -3,224 +3,113 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Gambler Guide</title>
+  <title>Gambler — Slack Bot</title>
   <link rel="stylesheet" href="style.css" />
   <script defer src="script.js"></script>
 </head>
 <body>
-  <div class="welcome" aria-hidden="false">
-    <div class="bubble">
-      <p class="bubble-text">Welcome to the Gambler Slack Bot Guide. (UNDER CONSTRUCTION)</p>
-      <p class="enter-hint" aria-live="polite" hidden>Press <kbd>Enter</kbd> to continue</p>
-    </div>
-  </div>
-
-  <div class="layout" aria-hidden="true">
-    <aside class="sidebar">
-      <div class="brand">
-        <div class="logo"></div>
-        <div>
-          <h1>Gambler Guide</h1>
-          <p class="muted">Commands & interactions</p>
-        </div>
-      </div>
-
-      <nav id="toc">
-        <a href="#overview">Overview</a>
-        <a href="#optin">Opt-In</a>
-        <a href="#reactions">Reactions</a>
+  <header class="site-header">
+    <div class="container">
+      <h1>Gambler</h1>
+      <p class="tagline">A small Slack bot for friendly wagers, coin flips, and simple challenges.</p>
+      <nav class="top-nav" aria-label="Sections">
+        <a href="#about">About</a>
+        <a href="#getting-started">Getting started</a>
         <a href="#commands">Commands</a>
-        <a href="#games">Games</a>
-        <a href="#battle">Battle & Challenges</a>
-        <a href="#shop">Shop & Power-Ups</a>
-        <a href="#streaks">Streaks</a>
-        <a href="#leaderboard">Leaderboard & Announcements</a>
-        <a href="#coins">Coins & Economy</a>
-        <a href="#secret">Secret Coins</a>
-        <a href="#tips">Tips</a>
-        <a href="#faq">FAQ</a>
+        <a href="#challenge">Challenges</a>
+        <a href="#reactions">Reactions</a>
       </nav>
-    </aside>
+    </div>
+  </header>
 
-    <main>
-      <section id="overview">
-        <h2>Overview</h2>
-        <p>
-          This bot runs opt-in mini-games, social challenges, and leaderboards in Slack.
-          It responds to <code>@mentions</code>, supports <em>slash commands</em>, and adds fun reactions.
-        </p>
-        <div class="cards">
-          <div class="card"><span class="tag">Play</span> Opt in to run commands & games.</div>
-          <div class="card"><span class="tag">See</span> Opt in to see public activity (optional).</div>
-          <div class="card"><span class="tag">Daily</span> 100 coins grant; streak tracking.</div>
-          <div class="card"><span class="tag">Rare</span> 3 ultra-rare Secret Coins exist.</div>
-        </div>
-      </section>
+  <main class="container">
+    <section id="about">
+      <h2>About</h2>
+      <p>
+        Gambler runs lightweight games and coin bets inside Slack. It uses slash commands,
+        ephemeral buttons, and threads to keep channels tidy.
+      </p>
+    </section>
 
-      <section id="optin">
-        <h2>The Opt-in</h2>
-        <ul class="bullets">
-          <li><strong>Basic (PLAY):</strong> <code>/invite @Gambler</code></li>
-          <li><strong>Feed (SEE):</strong> also shows other people's public game activity (ex: /leaderboard posts, challenges).</li>
-          <li><strong>How to opt in:</strong> ty</li>
-          <li><strong>Opt out:</strong> if you eventually find gambler to be too annoying, tou can alawys opt out with /stopgambeling </li>
-        </ul>
-      </section>
+    <section id="getting-started">
+      <h2>Getting started</h2>
+      <ol>
+        <li>Invite the app to a channel: <code>/invite @Gambler</code></li>
+        <li>Opt in by reacting with your workspace’s coin emoji (e.g. <code>:siege-coin:</code>)</li>
+        <li>Optional activity feed: <code>/see on</code> or <code>/see off</code></li>
+      </ol>
+    </section>
 
-      <section id="reactions">
-        <h2>Reactions</h2>
-        <p>The bot adds reactions to messages from opted-in players (rate-limited):</p>
-        <ul class="bullets">
-          <li><strong>“coin”</strong> → adds a coin reaction.</li>
-          <li><strong>“gamble”, “gambling”</strong> → hype reply (e.g., “let’s go gambling!”) + reaction.</li>
-          <li><strong>“win”, “won”</strong> → adds <em>Heidi happy</em> (custom) or a celebratory fallback.</li>
-          <li><strong>“lose”, “lost”</strong> → adds <em>Orpheus sad</em> (custom) or a sad fallback.</li>
-        </ul>
-        <p class="muted">Note: Custom emoji must exist in your workspace; otherwise fallbacks are used.</p>
-      </section>
+    <section id="commands">
+      <h2>Commands</h2>
+      <table class="cmds">
+        <thead>
+          <tr><th>Command</th><th>What it does</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>/coin</code></td>
+            <td>Show your coin balance and streak summary (ephemeral).</td>
+          </tr>
+          <tr>
+            <td><code>/leaderboard</code></td>
+            <td>Top 10 balances. Posts to the channel.</td>
+          </tr>
+          <tr>
+            <td><code>/challenge</code></td>
+            <td>Start a match. The opponent gets private <em>Accept / Decline</em> buttons.</td>
+          </tr>
+          <tr>
+            <td><code>/see on</code> &middot; <code>/see off</code></td>
+            <td>Toggle whether you see public activity from the bot.</td>
+          </tr>
+          <tr>
+            <td><code>/shop</code></td>
+            <td>Show items you can buy with coins.</td>
+          </tr>
+          <tr>
+            <td><code>/buy saver</code> &middot; <code>/buy sigma</code></td>
+            <td>Purchase a streak saver or keep coins through weekly reset.</td>
+          </tr>
+          <tr>
+            <td><code>/stopgambling</code></td>
+            <td>Opt out. The bot won’t react to you or show activity.</td>
+          </tr>
+          <tr>
+            <td><code>/listusers</code></td>
+            <td>(Debug) List a few workspace users the bot can see.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
 
-      <section id="commands">
-        <h2>Commands</h2>
-        <table class="table">
-          <thead>
-            <tr><th>Command</th><th>What it does</th><th>Where</th><th>Example</th></tr>
-          </thead>
-          <tbody>
-            <tr><td><code>/coin</code></td><td>Shows your coin balance and streak summary.</td><td>Channel or DM</td><td>Private (ephemeral) by default.</td></tr>
-            <tr><td><code>/leaderboard</code></td><td>Top 10, plus “You are #N”.</td><td>Channel</td><td>Public post.</td></tr>
-            <tr><td><code>/challenge @user|dealer [game] [amount]</code></td><td>Start a head-to-head match.</td><td>Channel</td><td>Target must Accept.</td></tr>
-            <tr><td><code>/shop</code></td><td>Open the store to buy power-ups & cosmetics.</td><td>DM or Channel</td><td>Purchases are logged.</td></tr>
-            <tr><td><code>/streak</code></td><td>Shows today’s status, current/longest streak, and saver.</td><td>DM</td><td>Private.</td></tr>
-            <tr><td><code>/help</code></td><td>DMs this guide.</td><td>Anywhere</td><td>Quick reference.</td></tr>
-          </tbody>
-        </table>
+    <section id="challenge">
+      <h2>Challenges</h2>
+      <ol>
+        <li>Run <code>/challenge</code> and pick an opponent and stake.</li>
+        <li>The opponent receives private <em>Accept / Decline</em> buttons (only they can press them).</li>
+        <li>On accept, stakes lock and the game runs in a thread.</li>
+        <li>Winner takes the pot; all transactions are logged.</li>
+      </ol>
+      <p class="muted">Outsiders tapping the buttons get a private “not allowed” message.</p>
+    </section>
 
-        <section id="games">
-          <h2>Games</h2>
+    <section id="reactions">
+      <h2>Reactions</h2>
+      <ul>
+        <li>Messages containing “coin” → coin reaction</li>
+        <li>“gamble” / “gambling” → hype reply + game die reaction</li>
+        <li>“win” / “won” → celebratory reaction</li>
+        <li>“lose” / “lost” → sad reaction</li>
+      </ul>
+      <p class="muted">Custom emoji fall back to standard ones if not present.</p>
+    </section>
+  </main>
 
-          <h3>Flip a Coin</h3>
-          <ul class="bullets">
-            <li><strong>Call first:</strong> choose Heads or Tails, then flip.</li>
-            <li><strong>Payout:</strong> even money (1:1). Optional house rules may apply.</li>
-            <li><strong>Play modes:</strong> solo vs dealer, or PvP via <code>/challenge</code>.</li>
-            <li><strong>Rematch:</strong> “Double or Nothing” button appears for 60s after results.</li>
-          </ul>
-
-          <h3>Old Maid (Joker Version)</h3>
-          <ul class="bullets">
-            <li><strong>Setup:</strong> each player gets 4 cards (Joker in the deck).</li>
-            <li><strong>Turn:</strong> on your turn, pick 1 random card from the other player’s hand; both players discard any new pairs.</li>
-            <li><strong>Per-turn removal:</strong> 1 card is removed from each hand per turn (never the Joker).</li>
-            <li><strong>Goal:</strong> don’t be the last player holding the Joker.</li>
-          </ul>
-
-          <h3>Poker (Regular)</h3>
-          <ul class="bullets">
-            <li><strong>Mode:</strong> classic poker (start with heads-up Texas Hold’em as default).</li>
-            <li><strong>Cards:</strong> DM for hole cards; shared cards posted in thread; actions via buttons.</li>
-            <li><strong>Emojis:</strong> optional emoji-based visual cues during hands.</li>
-          </ul>
-
-          <h3>Typing Battle</h3>
-          <ul class="bullets">
-            <li><strong>Prompt:</strong> both players get the same sentence from a rotating bank.</li>
-            <li><strong>Goal:</strong> fastest correct typer wins. Minor typos may void the attempt.</li>
-            <li><strong>Modes:</strong> PvP via <code>/challenge</code> or vs dealer (time target).</li>
-          </ul>
-      </section>
-
-      <section id="battle">
-        <h2>Battle & Challenges</h2>
-        <ol>
-          <li><strong>Start:</strong> <code>/challenge @username</code> or <code>/challenge dealer</code>, pick a game and stake.</li>
-          <li><strong>Accept:</strong> the other side gets <em>Accept/Decline</em>. If no response by timeout, it cancels.</li>
-          <li><strong>Lock stake:</strong> on accept, both sides’ stakes are reserved until outcome.</li>
-          <li><strong>Play:</strong> the game runs in a thread; turns use buttons, timers, and DMs where needed.</li>
-          <li><strong>Result:</strong> winner gets the whole pot; loser loses their stake.</li>
-          <li><strong>Rematch:</strong> “Double or Nothing” appears for 60s. Both must confirm.</li>
-        </ol>
-        <p class="muted">You can challenge the dealer (AI-hosted) or another player. The bot stays within Slack’s capabilities for interactivity and DMs.</p>
-      </section>
-
-      <section id="shop">
-        <h2>Shop & Power-Ups</h2>
-        <ul class="bullets">
-          <li><strong>Streak Saver:</strong> prevents a streak break once (consumes on use).</li>
-          <li><strong>Game Breaker:</strong> void one finished game within 5 minutes; stake refunded to both; logged.</li>
-          <li><strong>Sigma:</strong> your coins are not reset on the next weekly reset.</li>
-          <li><strong>Reactor:</strong> the bot will respond to every message you send with over-the-top praise/glaze (rate-limited to avoid spam).</li>
-        </ul>
-        <p class="muted">Cosmetics in Slack are limited. The bot can add special reactions, badges in App Home, and themed message headers—changing user profiles is generally not allowed by bots.</p>
-      </section>
-
-      <section id="streaks">
-        <h2>Streaks</h2>
-        <ul class="bullets">
-          <li><strong>Daily activity (ET):</strong> your streak increases if you play a game, issue a qualifying command, or claim the daily grant that day.</li>
-          <li><strong>Reset:</strong> if no qualifying action in a calendar day (ET), your streak resets—unless a Streak Saver auto-protects it.</li>
-          <li><strong>Stats:</strong> track current streak and longest streak; view with <code>/streak</code>.</li>
-        </ul>
-      </section>
-
-      <section id="leaderboard">
-        <h2>Leaderboard & Announcements</h2>
-        <ul class="bullets">
-          <li><strong>/leaderboard:</strong> public top 10; shows your personal rank as “You are #N”.</li>
-          <li><strong>Daily (12:00 AM ET):</strong> bot posts top 10 with streaks in the designated channel.</li>
-          <li><strong>Weekly (Mon 12:00 AM ET):</strong> announces winners and the lowest coin holder; coins reset (Sigma holders carry over).</li>
-        </ul>
-      </section>
-
-      <section id="coins">
-        <h2>Coins & Economy</h2>
-        <ul class="bullets">
-          <li><strong>Daily grant:</strong> +100 coins to everyone opted into PLAY.</li>
-          <li><strong>Balance check:</strong> <code>/coin</code> shows your current balance and streak summary.</li>
-          <li><strong>Betting rule:</strong> you may start a bet only if your balance is currently ≥ 0. You can go negative as a result of losing.</li>
-          <li><strong>Limits:</strong> optional per-bet/day caps may apply; all transactions are logged for fairness.</li>
-        </ul>
-      </section>
-
-      <section id="secret">
-        <h2>Secret Coins</h2>
-        <ul class="bullets">
-          <li><strong>There are exactly 3 Secret Coins.</strong></li>
-          <li><strong>Odds:</strong> ~1 in 1,000,000 per qualifying action (e.g., a command, game result).</li>
-          <li><strong>On discovery:</strong> the bot DMs you privately so you can brag if you want.</li>
-          <li><strong>No weekly reset:</strong> Secret Coins persist through resets.</li>
-          <li><strong>Collect all 3:</strong> the bot publicly announces it, and you receive <strong>1,000,000 coins</strong>.</li>
-        </ul>
-      </section>
-
-      <section id="tips" data-keywords="etiquette threads ephemeral privacy">
-        <h2>Tips</h2>
-        <ul class="bullets">
-          <li><strong>Use threads:</strong> Please we don't want a repeat of the secret button.</li>
-          <li><strong>DMs vs channels:</strong> DM to tell it your secrets. Channel to play against your friends. </li>
-          <li><strong>Be specific:</strong> when doing a command, make sur every letter is lowercase.</li>
-        </ul>
-      </section>
-
-      <section id="troubleshooting" data-keywords="not found invite no response slash command missing">
-        <h2>Troubleshooting</h2>
-        <ul class="bullets">
-          <li><strong>“I can’t find the bot”</strong> → LITERALLY SEARCH UP GAMBLER IN APPS</li>
-          <li><strong>“The bot isn’t responding”</strong> → It's probably asleep. Try <code>/invite @Gambler</code> and get better.</li>
-          <li><strong>“Certain commands don't work”</strong> → uhhh probably I disabled something. Try messaging @Iamalive for more info </li>
-        </ul>
-      </section>
-
-      <section id="faq" data-keywords="dm channels privacy visibility who sees">
-        <h2>FAQ</h2>
-        <p><strong>Can I use the bot in DMs?</strong> Yep! Message the bot by finding it in apps</p>
-        <p><strong>Who can see the bot’s messages?</strong> Depending on the level of gambeling you decided, you will see more or less messages </p>
-        <p><strong>Gamble?</strong> yes. Use <code>@Gambler</code> so it knows you’re talking to it.</p>
-      </section>
-
-      <footer>
-        <p class="muted">© 2025 GAMBLER SLACK BOT. I AM NOT RESPONSIBLE FOR ANY GAMBLING ADDITIONS</p>
-      </footer>
-    </main>
-  </div>
+  <footer class="site-footer">
+    <div class="container">
+      <p class="muted">&copy; 2025 Gambler. I AM NOT RESPONSIBLE FOR ANY GAMBLING ADDICTIONS </p>
+    </div>
+  </footer>
 </body>
 </html>
